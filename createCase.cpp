@@ -20,14 +20,14 @@ public:
     shape(){}
 
     shape(int num, int range_w, int range_h){
-        uniform_int_distribution<> s_w(20, int(0.5*range_w));
-        uniform_int_distribution<> s_h(20, int(0.5*range_h));//look comment below
+        uniform_int_distribution<> s_w(20, int(0.1*range_w));
+        uniform_int_distribution<> s_h(20, int(0.1*range_h));//look comment below
         w = new double[num];
         h = new double[num];
         for(int i=0;i<num;i++){
             w[i] = s_w(rng) / 2;
             h[i] = s_h(rng) / 2;
-        }//max are 0.25 die_size(*0.5 and /2), because I think they shouldn't be too large
+        }//max are 0.05 die_size(*0.1 and /2), because I think they shouldn't be too large
         //  and devide 2 make some of them have 小數
     }
 };
