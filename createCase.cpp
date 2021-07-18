@@ -62,9 +62,9 @@ int main(int argc, char *argv[]){
     }
 
     f << "VERSION 5.7 ;"<<"\n";
-    f << "DESIGN case "<< argv[1] << " ;"<<"\n";
+    f << "DESIGN case"<< argv[1] << " ;"<<"\n";
     f << "UNITS DISTANCE MICRONS 1000 ;"<<"\n\n";
-    f << "DIEAREA ( 0 0 ) ( "<<die_width <<" "<<die_height<<" ) ;"<<"\n";
+    f << "DIEAREA ( 0 0 ) ( "<<die_width*dbu_per_micron <<" "<<die_height*dbu_per_micron<<" ) ;"<<"\n";
 
     f << "\nCOMPONENTS " << num_macro << " ;\n";
 
