@@ -32,6 +32,11 @@ public:
     }
 };
 
+int generate(int type, int range_l, int range_h){
+    uniform_int_distribution<> m_w(range_l, range_h);
+    return m_w(rng);
+}
+
 int main(int argc, char *argv[]){
     //set case arguments
     int num_macro = atoi(argv[2]);
@@ -51,8 +56,7 @@ int main(int argc, char *argv[]){
     
     shape shapes(num_shape, die_width, die_height);
 
-    uniform_int_distribution<> m_w(0, die_width*dbu_per_micron);
-    uniform_int_distribution<> m_h(0, die_height*dbu_per_micron);
+
 
 
     ofstream f(def_filename.c_str());
@@ -82,13 +86,14 @@ int main(int argc, char *argv[]){
         if (rand_int(rng)<100)
         {
             f << "FIXED ( ";
+            f << generate(0, 0, (die_width-shapes.w[this_shape])*dbu_per_micron) << " " << generate(0, 0, (die_height-shapes.h[this_shape])*dbu_per_micron) << " ) N ;\n";
         }
         else
         {
             f << "PLACED ( ";
+            f << generate(0, 0-shapes.w[this_shape]*dbu_per_micron, die_width*dbu_per_micron) << " " << generate(0, 0-shapes.h[this_shape]*dbu_per_micron, die_height*dbu_per_micron) << " ) N ;\n";
         }
         
-        f << m_w(rng) << " " << m_h(rng) << " ) N ;\n";
     }
 
     f << "END COMPONENTS\n\n\nEND DESIGN\n\n\n";
