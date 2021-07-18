@@ -63,7 +63,7 @@ int main(int argc, char *argv[]){
 
     f << "VERSION 5.7 ;"<<"\n";
     f << "DESIGN case "<< argv[1] << " ;"<<"\n";
-    f << "UNITS DISTANCE MICRONS 1000 ;"<<"\n";
+    f << "UNITS DISTANCE MICRONS 1000 ;"<<"\n\n";
     f << "DIEAREA ( 0 0 ) ( "<<die_width <<" "<<die_height<<" ) ;"<<"\n";
 
     f << "\nCOMPONENTS " << num_macro << " ;\n";
@@ -105,8 +105,9 @@ int main(int argc, char *argv[]){
     for(int i=0;i<num_shape;i++){
         f<<"MACRO C"<<i<<"\n";
         f<<"     SIZE "<<shapes.w[i]<<" BY "<<shapes.h[i]<<" ;"<<"\n";
-        f<<"END C"<<i<<"\n";
+        f<<"END C"<<i<<"\n\n";
     }
+    f<<"END LIBRARY"<<"\n";
     f.close();
 
 //create txt
