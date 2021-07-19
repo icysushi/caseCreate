@@ -47,7 +47,7 @@ int generate(int type, int range_l, int range_h){// type arg is for more complex
 int minimun_space;
 
 bool overlape(int a_x_l, int a_x_h, int a_y_l, int a_y_h, int b_x_l, int b_x_h, int b_y_l, int b_y_h){
-    return !( ( (a_x_h<b_x_l-minimun_space)||(a_x_l-minimun_space>=b_x_h) ) || 
+    return !( ( (a_x_h<=b_x_l-minimun_space)||(a_x_l-minimun_space>=b_x_h) ) || 
     ((a_y_h<=b_y_l-minimun_space)||(a_y_l-minimun_space>=b_y_h) ));
 }
 
