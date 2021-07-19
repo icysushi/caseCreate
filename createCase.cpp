@@ -64,7 +64,7 @@ int main(int argc, char *argv[]){
     int alpha = 1;
     int beta = 8;
 
-    int num_fix = num_macro;//generate(0, num_macro*0.1, num_macro*0.2);
+    int num_fix = generate(0, num_macro*0.1, num_macro*0.2);
 
     string def_filename = "case"+string(argv[1])+".def";
     string lef_filename = "case"+string(argv[1])+".lef";
