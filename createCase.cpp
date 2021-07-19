@@ -48,7 +48,7 @@ int minimun_space;
 
 bool overlape(int a_x_l, int a_x_h, int a_y_l, int a_y_h, int b_x_l, int b_x_h, int b_y_l, int b_y_h){
     return !( ( (a_x_h<b_x_l-minimun_space)||(a_x_l-minimun_space>=b_x_h) ) || 
-    ((a_y_h<=b_y_l-minimun_space)||(a_x_l-minimun_space>=b_x_h) ));
+    ((a_y_h<=b_y_l-minimun_space)||(a_y_l-minimun_space>=b_y_h) ));
 }
 
 int main(int argc, char *argv[]){
@@ -64,7 +64,7 @@ int main(int argc, char *argv[]){
     int alpha = 1;
     int beta = 8;
 
-    int num_fix = generate(0, num_macro*0.1, num_macro*0.2);
+    int num_fix = num_macro;//generate(0, num_macro*0.1, num_macro*0.2);
 
     string def_filename = "case"+string(argv[1])+".def";
     string lef_filename = "case"+string(argv[1])+".lef";
