@@ -13,6 +13,13 @@ using namespace std;
 //random_device rd; 
 mt19937_64 rng(time(NULL));
 
+struct poly{
+    int x_l;
+    int x_h;
+    int y_l;
+    int y_h;
+};
+
 class shape{
 public:
     double *w;
@@ -37,6 +44,10 @@ int generate(int type, int range_l, int range_h){
     return m_w(rng);
 }
 
+bool overlape(int a_x_l, int a_x_h, int a_y_l, int a_y_h, int b_x_l, int b_x_h, int b_y_l, int b_y_h){
+    return !( ( (a_x_h<=b_x_l)||(a_x_l>=b_x_h) ) || ((a_y_h<=b_y_l)||(a_x_l>=b_x_h) ));
+}
+
 int main(int argc, char *argv[]){
     //set case arguments
     int num_macro = atoi(argv[2]);
@@ -50,13 +61,15 @@ int main(int argc, char *argv[]){
     int alpha = 1;
     int beta = 8;
 
+    int num_fix = num_macro*0.1;
+
     string def_filename = "case"+string(argv[1])+".def";
     string lef_filename = "case"+string(argv[1])+".lef";
     string txt_filename = "case"+string(argv[1])+".txt";
     
     shape shapes(num_shape, die_width, die_height);
 
-
+    poly fix_macro[num_fix];
 
 
     ofstream f(def_filename.c_str());
@@ -74,7 +87,7 @@ int main(int argc, char *argv[]){
 
     int this_shape;
     uniform_int_distribution<> m_shape(0,num_shape-1);
-
+    bool _overlape;
     for (int i = 0; i < num_macro; i++)
     {
         this_shape = m_shape(rng);
@@ -82,11 +95,26 @@ int main(int argc, char *argv[]){
           << " " << "C"<<this_shape << " \n"  //shape name:Cy
           << "      + ";
         
-        uniform_int_distribution<> rand_int(0, 1000);
-        if (rand_int(rng)<100)
+        //uniform_int_distribution<> rand_int(0, 1000);
+        if (i<num_fix)
         {
             f << "FIXED ( ";
-            f << generate(0, 0, (die_width-shapes.w[this_shape])*dbu_per_micron) << " " << generate(0, 0, (die_height-shapes.h[this_shape])*dbu_per_micron) << " ) N ;\n";
+            _overlape = true;
+            while(_overlape){
+                _overlape = false;
+                fix_macro[i].x_l = generate(0, 0, (die_width-shapes.w[this_shape])*dbu_per_micron);
+                fix_macro[i].y_l = generate(0, 0, (die_height-shapes.h[this_shape])*dbu_per_micron);
+                fix_macro[i].x_h = fix_macro[i].x_l + shapes.w[this_shape]*dbu_per_micron;
+                fix_macro[i].y_h = fix_macro[i].y_l + shapes.h[this_shape]*dbu_per_micron;
+                for(int j=0;j<i;j++){
+                    if(overlape(fix_macro[i].x_l, fix_macro[i].x_h, fix_macro[i].y_l, fix_macro[i].y_h, fix_macro[j].x_l, fix_macro[j].x_h, fix_macro[j].y_l, fix_macro[j].y_h)){
+                        _overlape = true;
+                        cout<<i<<" "<<j<<endl;
+                        break;
+                    }
+                }
+            }
+            f << fix_macro[i].x_l << " " << fix_macro[i].y_l << " ) N ;\n";
         }
         else
         {
