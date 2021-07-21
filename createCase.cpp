@@ -65,7 +65,7 @@ public:
         delete [] h;
         w = new double[num_shape];
         h = new double[num_shape];
-        num_big_macro = generate(0, 1, num_shape/2);
+        num_big_macro = num_shape/2;//generate(0, 1, num_shape/2);
         for(int i=0;i<num_shape;i++){
             if(i<num_big_macro){
                 generateBig(i);
@@ -96,7 +96,6 @@ bool overlape(int a_x_l, int a_x_h, int a_y_l, int a_y_h, int b_x_l, int b_x_h, 
 
 /// different generate mode
 void origin_generate(shape& shapes);
-void diearea_generate(shape& shapes);
 
 int main(int argc, char *argv[]){
     //set case arguments
@@ -121,6 +120,7 @@ int main(int argc, char *argv[]){
     
     shape shapes;
 
+    //use which mode?
     origin_generate(shapes);
 
     ofstream f;
@@ -157,88 +157,7 @@ int main(int argc, char *argv[]){
 }
 
 
-void diearea_generate(shape& shapes){
-    num_fix = generate(0, num_macro*0.1, num_macro*0.2);//random
-    poly fix_macro[num_fix];
 
-    int this_shape;
-    bool _overlape;
-    bool impossible = true;
-    long long int area;
-
-    ofstream f;
-    while(impossible){
-        impossible = false;
-        area = 0;
-
-        f.open(def_filename.c_str());
-        if (!f.good())
-        {
-            cerr << "Unable to open def";
-        }
-
-        shapes.reshape();
-
-        f << "VERSION 5.7 ;"<<"\n";
-        f << "DESIGN case"<< casename << " ;"<<"\n";
-        f << "UNITS DISTANCE MICRONS 1000 ;"<<"\n\n";
-        f << "DIEAREA ( 0 0 ) ( "<<die_width*dbu_per_micron <<" "<<die_height*dbu_per_micron<<" ) ;"<<"\n";
-
-        f << "\nCOMPONENTS " << num_macro << " ;\n";
-
-        for (int i = 0; i < num_macro; i++)
-        {
-            this_shape = generate(0, 0,num_shape-1);
-            f << "   - " << "M"<<i<<"_C"<<this_shape //name:Mx_Cy
-            << " " << "C"<<this_shape << " \n"  //shape name:Cy
-            << "      + ";
-            
-            //uniform_int_distribution<> rand_int(0, 1000);
-            if (i<num_fix)
-            {
-                f << "FIXED ( ";
-                _overlape = true;
-                while(_overlape){
-                    _overlape = false;
-                    fix_macro[i].x_l = generate(0, 0, (die_width-shapes.w[this_shape])*dbu_per_micron);
-                    fix_macro[i].y_l = generate(0, 0, (die_height-shapes.h[this_shape])*dbu_per_micron);
-                    fix_macro[i].x_h = fix_macro[i].x_l + shapes.w[this_shape]*dbu_per_micron;
-                    fix_macro[i].y_h = fix_macro[i].y_l + shapes.h[this_shape]*dbu_per_micron;
-                    for(int j=0;j<i;j++){
-                        if(overlape(fix_macro[i].x_l, fix_macro[i].x_h, fix_macro[i].y_l, fix_macro[i].y_h, fix_macro[j].x_l, fix_macro[j].x_h, fix_macro[j].y_l, fix_macro[j].y_h)){
-                            _overlape = true;
-                            cout<<"fix macro overlape:"<<i<<" "<<j<<", re-assigning..."<<endl;
-                            break;
-                        }
-                    }
-                }
-                f << fix_macro[i].x_l << " " << fix_macro[i].y_l << " ) N ;\n";
-                area += 2*shapes.w[this_shape]*shapes.h[this_shape]//fix macro size *2 because fix macro cause more unplaceble area
-                 + 2*(shapes.w[this_shape]*minimun_space + shapes.h[this_shape]*minimun_space);
-            }
-            else
-            {
-                f << "PLACED ( ";
-                f << generate(0, 0-shapes.w[this_shape]*dbu_per_micron, die_width*dbu_per_micron) << " " 
-                << generate(0, 0-shapes.h[this_shape]*dbu_per_micron, die_height*dbu_per_micron) << " ) N ;\n";
-
-                area += shapes.w[this_shape]*shapes.h[this_shape]
-                 + 2*(shapes.w[this_shape]*minimun_space + shapes.h[this_shape]*minimun_space);
-            }
-            
-        }
-
-        f << "END COMPONENTS\n\n\nEND DESIGN\n\n\n";
-        f.close();
-
-        if(area>(die_height*die_width)){
-            cout<<"case impossiple to solve"<<endl;
-            cout<<"    macros_area:"<<area<<" die:"<<die_width*die_height<<endl;
-            cout<<"    regenerate all..."<<endl;
-            impossible = true;
-        }
-    }
-}
 
 
 void origin_generate(shape& shapes){
