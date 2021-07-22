@@ -4,6 +4,7 @@
 #include <random>
 #include <string.h>
 #include <ctime>
+#include <cmath>
 
 
 using namespace std;
@@ -22,6 +23,8 @@ int generate(int type, int range_l, int die_height){// type arg is for more comp
     uniform_int_distribution<> m_w(range_l, die_height);
     return m_w(rng);
 }
+
+
 
 int minimun_space;
 int num_macro;
@@ -65,25 +68,30 @@ public:
         delete [] h;
         w = new double[num_shape];
         h = new double[num_shape];
+        //type_BigandSmall();
+        type_byNumOfMacro();
+    }
+
+    void type_byNumOfMacro(){
+        for(int i=0;i<num_shape;i++){
+            w[i] = generate(0, int(die_width/sqrt(num_macro)*0.7), int(die_width/sqrt(num_macro)*2)) /2;
+            h[i] = generate(0, int(die_height/sqrt(num_macro)*0.7), int(die_height/sqrt(num_macro)*2)) /2;
+        }
+    }
+
+    void type_BigandSmall(){
         num_big_macro = num_shape/2;//generate(0, 1, num_shape/2);
         for(int i=0;i<num_shape;i++){
             if(i<num_big_macro){
-                generateBig(i);
+                w[i] = generate(0, int(0.3*die_width), int(0.8*die_width)) /2;
+                h[i] = generate(0, int(0.3*die_height), int(0.8*die_height)) /2;
             }else{
-                generateSmall(i);
+                w[i] = generate(0, int(0.1*die_width), int(0.2*die_width)) /2;
+                h[i] = generate(0, int(0.1*die_height), int(0.2*die_height)) /2;
             }
         }
     }
 
-    void generateBig(int i){
-        w[i] = generate(0, int(0.3*die_width), int(0.8*die_width)) /2;
-        h[i] = generate(0, int(0.3*die_height), int(0.8*die_height)) /2;
-    }
-
-    void generateSmall(int i){
-        w[i] = generate(0, int(0.1*die_width), int(0.2*die_width)) /2;
-        h[i] = generate(0, int(0.1*die_height), int(0.2*die_height)) /2;
-    }
 };
 
 
@@ -94,8 +102,9 @@ bool overlape(int a_x_l, int a_x_h, int a_y_l, int a_y_h, int b_x_l, int b_x_h, 
 }
 
 
-/// different generate mode
+/// generate modes
 void origin_generate(shape& shapes);
+void crowded_generate(shape& shapes, int num_croud, int percent_crouded);
 
 int main(int argc, char *argv[]){
     //set case arguments
@@ -110,7 +119,7 @@ int main(int argc, char *argv[]){
     alpha = 1;
     beta = 8;
 
-    num_fix = generate(0, num_macro*0.1, num_macro*0.2);//random
+    num_fix = 0;//
 
     casename = string(argv[1]);
 
@@ -120,8 +129,9 @@ int main(int argc, char *argv[]){
     
     shape shapes;
 
-    //use which mode?
-    origin_generate(shapes);
+    //generate modes
+    //origin_generate(shapes);//(1)
+    crowded_generate(shapes, 2, 50);//(2) (shape, number of crowded point, rate of crowded macros:int between 1-100)
 
     ofstream f;
 
@@ -157,7 +167,124 @@ int main(int argc, char *argv[]){
 }
 
 
+void crowded_generate(shape& shapes,int num_croud, int percent_crouded){
+    //num_fix = 0;//generate(0, 0, num_macro*0.1);//random
+    poly fix_macro[num_fix];
 
+    int this_shape;
+    bool _overlape;
+    bool impossible = true;
+    long long int area;
+
+    int x[num_croud] = {0};
+    int y[num_croud] = {0};
+    int temp;
+    int this_xy;
+
+    ofstream f;
+    while(impossible){
+        for(int i=0;i<num_croud;i++){
+            x[i] = 0;
+            y[i] = 0;
+        }
+        for(int i=0;i<num_croud;i++){
+            temp = generate(0, 0, num_croud - 1);
+            while(x[temp]!=0){
+                //cout<<temp<<endl;
+                temp = generate(0, 0, num_croud - 1);
+            }
+            x[temp] = generate(0, i*die_width*dbu_per_micron/num_croud, (i+1)*die_width*dbu_per_micron/num_croud);
+
+            temp = generate(0, 0, num_croud - 1);
+            while(y[temp]!=0){
+                //cout<<temp<<endl;
+                temp = generate(0, 0, num_croud - 1);
+            }
+            y[temp] = generate(0, i*die_height*dbu_per_micron/num_croud, (i+1)*die_height*dbu_per_micron/num_croud);
+        }
+
+        impossible = false;
+        area = 0;
+
+        f.open(def_filename.c_str());
+        if (!f.good())
+        {
+            cerr << "Unable to open def";
+        }
+
+        shapes.reshape();
+
+        f << "VERSION 5.7 ;"<<"\n";
+        f << "DESIGN case"<< casename << " ;"<<"\n";
+        f << "UNITS DISTANCE MICRONS 1000 ;"<<"\n\n";
+        f << "DIEAREA ( 0 0 ) ( "<<die_width*dbu_per_micron <<" "<<die_height*dbu_per_micron<<" ) ;"<<"\n";
+
+        f << "\nCOMPONENTS " << num_macro << " ;\n";
+
+        for (int i = 0; i < num_macro; i++)
+        {
+            this_shape = generate(0, 0,num_shape-1);
+            f << "   - " << "M"<<i<<"_C"<<this_shape //name:Mx_Cy
+            << " " << "C"<<this_shape << " \n"  //shape name:Cy
+            << "      + ";
+            
+            //uniform_int_distribution<> rand_int(0, 1000);
+            if (i<num_fix)
+            {
+                f << "FIXED ( ";
+                _overlape = true;
+                while(_overlape){
+                    _overlape = false;
+                    fix_macro[i].x_l = generate(0, 0, (die_width-shapes.w[this_shape])*dbu_per_micron);
+                    fix_macro[i].y_l = generate(0, 0, (die_height-shapes.h[this_shape])*dbu_per_micron);
+                    fix_macro[i].x_h = fix_macro[i].x_l + shapes.w[this_shape]*dbu_per_micron;
+                    fix_macro[i].y_h = fix_macro[i].y_l + shapes.h[this_shape]*dbu_per_micron;
+                    for(int j=0;j<i;j++){
+                        if(overlape(fix_macro[i].x_l, fix_macro[i].x_h, fix_macro[i].y_l, fix_macro[i].y_h, fix_macro[j].x_l, fix_macro[j].x_h, fix_macro[j].y_l, fix_macro[j].y_h)){
+                            _overlape = true;
+                            cout<<"fix macro overlape:"<<i<<" "<<j<<", re-assigning..."<<endl;
+                            break;
+                        }
+                    }
+                }
+                f << fix_macro[i].x_l << " " << fix_macro[i].y_l << " ) N ;\n";
+                area += 2*shapes.w[this_shape]*shapes.h[this_shape]//fix macro size *2 because fix macro cause more unplaceble area
+                 + 2*(shapes.w[this_shape]*minimun_space + shapes.h[this_shape]*minimun_space);
+            }
+            else
+            {
+                if(generate(0, 1, 100)<=percent_crouded){
+                    this_xy = generate(0, 0, num_croud-1);
+                    f << "PLACED ( ";
+                    f << generate(0, x[this_xy]-shapes.w[this_shape]*dbu_per_micron, x[this_xy]+shapes.w[this_shape]*dbu_per_micron) << " " 
+                    << generate(0, y[this_xy]-shapes.h[this_shape]*dbu_per_micron, y[this_xy]+shapes.h[this_shape]*dbu_per_micron) << " ) N ;\n";
+
+                    area += shapes.w[this_shape]*shapes.h[this_shape]
+                    + 2*(shapes.w[this_shape]*minimun_space + shapes.h[this_shape]*minimun_space);
+                }
+                else{
+                    f << "PLACED ( ";
+                    f << generate(0, 0-shapes.w[this_shape]*dbu_per_micron, die_width*dbu_per_micron) << " " 
+                    << generate(0, 0-shapes.h[this_shape]*dbu_per_micron, die_height*dbu_per_micron) << " ) N ;\n";
+
+                    area += shapes.w[this_shape]*shapes.h[this_shape]
+                    + 2*(shapes.w[this_shape]*minimun_space + shapes.h[this_shape]*minimun_space);
+                }
+            }
+            
+        }
+
+        f << "END COMPONENTS\n\n\nEND DESIGN\n\n\n";
+        f.close();
+
+        if(area>(die_height*die_width)){
+            cout<<"case impossiple to solve"<<endl;
+            cout<<"    macros_area:"<<area<<" die:"<<die_width*die_height<<endl;
+            cout<<"    regenerate all..."<<endl;
+            impossible = true;
+        }
+    }
+}
 
 
 void origin_generate(shape& shapes){
