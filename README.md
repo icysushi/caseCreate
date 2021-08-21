@@ -14,6 +14,6 @@ macro position strategy：
     (1)normal random  
     (2)crowded:choose how many crowded point and how much macro should be in them  
   
-num of fix macro  
-def argument  
+num of fix macro,  
+def argument,  
 txt argument  

@@ -74,8 +74,8 @@ public:
 
     void type_byNumOfMacro(){
         for(int i=0;i<num_shape;i++){
-            w[i] = generate(0, int(die_width/sqrt(num_macro)*0.7), int(die_width/sqrt(num_macro)*2)) /2;
-            h[i] = generate(0, int(die_height/sqrt(num_macro)*0.7), int(die_height/sqrt(num_macro)*2)) /2;
+            w[i] = generate(0, int(die_width/sqrt(num_macro)*0.2), int(die_width/sqrt(num_macro)*1.5)) /2;
+            h[i] = generate(0, int(die_height/sqrt(num_macro)*0.2), int(die_height/sqrt(num_macro)*1.5)) /2;
         }
     }
 
@@ -110,8 +110,8 @@ int main(int argc, char *argv[]){
     //set case arguments
     num_macro = atoi(argv[2]);
     num_shape = atoi(argv[3]);
-    die_width = 2000;
-    die_height = 2000;
+    die_width = 20000;
+    die_height = 20000;
     dbu_per_micron = 1000;
     powerplan = 30;
     minimun_space = 10;
@@ -130,8 +130,8 @@ int main(int argc, char *argv[]){
     shape shapes;
 
     //generate modes
-    //origin_generate(shapes);//(1)
-    crowded_generate(shapes, 2, 50);//(2) (shape, number of crowded point, rate of crowded macros:int between 1-100)
+    origin_generate(shapes);//(1)
+    //crowded_generate(shapes, 2, 50);//(2) (shape, number of crowded point, rate of crowded macros:int between 1-100)
 
     ofstream f;
 
